@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import localforage from "localforage";
 
 import {
   Container,
@@ -25,10 +26,31 @@ interface Todo {
 
 type Filter = "all" | "done" | "unchecked" | "removed";
 
+const APP_KEY = "appTaskManagement";
+
 const App = () => {
   const [text, setText] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
+  async function fetchData() {
+    try {
+      const value = await localforage.getItem<Todo[]>(APP_KEY);
+      // console.log(value);
+      if (value) {
+        setTodos(value);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    localforage.setItem(APP_KEY, todos);
+  }, [todos]);
 
   const filterdTodo = todos.filter((todo) => {
     switch (filter) {
